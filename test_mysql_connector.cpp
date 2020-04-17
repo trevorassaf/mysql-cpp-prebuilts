@@ -12,7 +12,6 @@ void PrintRow(mysqlx::Row *row)
   assert(row);
 
   V &value = reinterpret_cast<V &>(row->get(0));
-  //const mysqlx::abi2::r0::common::Value &common_value = (const mysqlx::abi2::r0::common::Value &)value;
   size_t index = value.get_uint();
 
   value = reinterpret_cast<V &>(row->get(1));
@@ -20,24 +19,21 @@ void PrintRow(mysqlx::Row *row)
   const std::string &name = std::string(reinterpret_cast<const char *>(wide_name.c_str()), wide_name.size() * 2);
 
   value = reinterpret_cast<V &>(row->get(2));
-  const std::u16string &wide_date = value.get_ustring();
-  const std::string &date = std::string(reinterpret_cast<const char *>(wide_date.c_str()), wide_date.size() * 2);
+  const std::u16string &wide_time = value.get_ustring();
+  const std::string &time = std::string(reinterpret_cast<const char *>(wide_time.c_str()), wide_time.size() * 2);
 
-  value = reinterpret_cast<V &>(row->get(3));
-  double ceil = value.get_double();
-
-  value = reinterpret_cast<V &>(row->get(4));
-  double floor = value.get_double();
+  value = reinterpret_cast<V &>(row->get(2));
+  const std::u16string &wide_location = value.get_ustring();
+  const std::string &location = std::string(reinterpret_cast<const char *>(wide_location.c_str()), wide_location.size() * 2);
 
   std::cout << "Row: <index=" << index
             << ", name=" << name
-            << ", date=" << date
-            << ", ceil=" << ceil
-            << ", floor=" << floor
+            << ", time=" << time
+            << ", location=" << location
             << ">" << std::endl;
 }
 
-int main(int argc, const char **argv[])
+int main(int argc, const char **argv)
 {
   std::string url = "mysqlx://trevor@localhost";
 
@@ -50,10 +46,10 @@ int main(int argc, const char **argv[])
   std::cout << "Using plantsandthings" << std::endl;
 
   std::string insert_query =
-      "INSERT INTO soil_moisture_sensors (name,time,ceiling,floor) VALUES ('sensor_1', '1970-01-01 00:00:01', 1.5, 2.0)";
+      "INSERT INTO rpis (name,time,location) VALUES ('rpi_1', '1970-01-01 00:00:01', 'test location')";
   session.sql(insert_query.c_str()).execute();
 
-  auto result = session.sql("SELECT * from soil_moisture_sensors").execute();
+  auto result = session.sql("SELECT * from rpis").execute();
   std::list<mysqlx::Row> row_list = result.fetchAll();
 
   for (auto &row : row_list)
